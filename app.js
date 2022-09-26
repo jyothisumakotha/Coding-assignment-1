@@ -234,7 +234,8 @@ app.put("/todos/:todoId/", async (request, response) => {
     FROM
       todo
     WHERE 
-      id = ${todoId};`;
+      id = ${todoId} AND (status="TO DO" OR status="DONE" OR status="IN PROGRESS") AND (priority="HIGH" OR priority="LOW" OR priority="MEDIUM")
+AND (category="HOME" or category="LEARNING" OR category="WORK");`;
   const previousTodo = await db.get(previousTodoQuery);
 
   const {
@@ -261,8 +262,7 @@ app.put("/todos/:todoId/", async (request, response) => {
 });
 
 app.delete("/todos/:todoId/", async (request, response) => {
-  const { todoId } = request.params;
-  const deleteTodoQuery = `DELETE FROM todo WHERE id=${todoId};`;
+  const deleteTodoQuery = `DELETE FROM todo WHERE id=${request.params.todoId};`;
   await db.run(deleteTodoQuery);
   response.send("Todo Deleted");
 });
