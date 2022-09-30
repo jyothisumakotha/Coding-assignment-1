@@ -143,7 +143,9 @@ app.get("/agenda/", async (request, response) => {
   const isValid = require("date-fns/isValid");
   const result = isValid(new Date(`${request.query.date}`));
   if (result) {
-    const getTodo = `SELECT * FROM todo WHERE due_date ='${request.query.date}';`;
+    const format = require("date-fns/format");
+    const date = format(new Date(`${request.query.date}`), "yyyy-MM-dd");
+    const getTodo = `SELECT * FROM todo WHERE due_date ='${date}';`;
     const data = await db.all(getTodo);
     const res = [];
     for (let todo of data) {
@@ -194,6 +196,14 @@ app.put("/todos/:todoId/", async (request, response) => {
     case request.body.status !== undefined:
       if (statuses.includes(request.body.status)) {
         response.send("Status Updated");
+        const previousTodoQuery = `SELECT * FROM todo WHERE id = ${todoId} AND (status="TO DO" OR status="DONE" OR status="IN PROGRESS") AND (priority="HIGH" OR priority="LOW" OR priority="MEDIUM")
+        AND (category="HOME" or category="LEARNING" OR category="WORK");`;
+        const previousTodo = await db.get(previousTodoQuery);
+        console.log(previousTodo);
+        if (previousTodo !== undefined) {
+          const updateTodoQuery = `UPDATE todo SET status='${request.body.status} WHERE id = ${todoId};`;
+          await db.run(updateTodoQuery);
+        }
       } else {
         response.status(400);
         response.send("Invalid Todo Status");
@@ -202,6 +212,14 @@ app.put("/todos/:todoId/", async (request, response) => {
     case request.body.priority !== undefined:
       if (priorities.includes(request.body.priority)) {
         response.send("Priority Updated");
+        const previousTodoQuery = `SELECT * FROM todo WHERE 
+        id = ${todoId} AND (status="TO DO" OR status="DONE" OR status="IN PROGRESS") AND (priority="HIGH" OR priority="LOW" OR priority="MEDIUM")
+        AND (category="HOME" or category="LEARNING" OR category="WORK");`;
+        const previousTodo = await db.get(previousTodoQuery);
+        if (previousTodo !== undefined) {
+          const updateTodoQuery = `UPDATE todo SET priority='${request.body.priority}' WHERE id = ${todoId};`;
+          await db.run(updateTodoQuery);
+        }
       } else {
         response.status(400);
         response.send("Invalid Todo Priority");
@@ -210,6 +228,14 @@ app.put("/todos/:todoId/", async (request, response) => {
     case request.body.category !== undefined:
       if (categories.includes(request.body.category)) {
         response.send("Category Updated");
+        const previousTodoQuery = `SELECT * FROM todo WHERE 
+        id = ${todoId} AND (status="TO DO" OR status="DONE" OR status="IN PROGRESS") AND (priority="HIGH" OR priority="LOW" OR priority="MEDIUM")
+        AND (category="HOME" or category="LEARNING" OR category="WORK");`;
+        const previousTodo = await db.get(previousTodoQuery);
+        if (previousTodo !== undefined) {
+          const updateTodoQuery = `UPDATE todo SET category='${request.body.category}' WHERE id = ${todoId};`;
+          await db.run(updateTodoQuery);
+        }
       } else {
         response.status(400);
         response.send("Invalid Todo Category");
@@ -225,40 +251,17 @@ app.put("/todos/:todoId/", async (request, response) => {
       }
       break;
     case request.body.todo !== undefined:
+      const previousTodoQuery = `SELECT * FROM todo WHERE 
+      id = ${todoId} AND (status="TO DO" OR status="DONE" OR status="IN PROGRESS") AND (priority="HIGH" OR priority="LOW" OR priority="MEDIUM")
+      AND (category="HOME" or category="LEARNING" OR category="WORK");`;
+      const previousTodo = await db.get(previousTodoQuery);
+      if (previousTodo !== undefined) {
+        const updateTodoQuery = `UPDATE todo SET todo='${request.body.todo}' WHERE id = ${todoId};`;
+        await db.run(updateTodoQuery);
+      }
       response.send("Todo Updated");
       break;
   }
-  const previousTodoQuery = `
-    SELECT
-      *
-    FROM
-      todo
-    WHERE 
-      id = ${todoId} AND (status="TO DO" OR status="DONE" OR status="IN PROGRESS") AND (priority="HIGH" OR priority="LOW" OR priority="MEDIUM")
-AND (category="HOME" or category="LEARNING" OR category="WORK");`;
-  const previousTodo = await db.get(previousTodoQuery);
-
-  const {
-    todo = previousTodo.todo,
-    priority = previousTodo.priority,
-    status = previousTodo.status,
-    category = previousTodo.category,
-    due_date = previousTodo.due_date,
-  } = request.body;
-
-  const updateTodoQuery = `
-    UPDATE
-      todo
-    SET
-      todo='${todo}',
-      priority='${priority}',
-      status='${status}',
-      category='${category}',
-      due_date='${due_date}'
-    WHERE
-      id = ${todoId};`;
-
-  await db.run(updateTodoQuery);
 });
 
 app.delete("/todos/:todoId/", async (request, response) => {
