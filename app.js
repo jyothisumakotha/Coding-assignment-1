@@ -201,7 +201,7 @@ app.put("/todos/:todoId/", async (request, response) => {
         const previousTodo = await db.get(previousTodoQuery);
         console.log(previousTodo);
         if (previousTodo !== undefined) {
-          const updateTodoQuery = `UPDATE todo SET status='${request.body.status} WHERE id = ${todoId};`;
+          const updateTodoQuery = `UPDATE todo SET status='${request.body.status}' WHERE id = ${todoId};`;
           await db.run(updateTodoQuery);
         }
       } else {
@@ -212,8 +212,7 @@ app.put("/todos/:todoId/", async (request, response) => {
     case request.body.priority !== undefined:
       if (priorities.includes(request.body.priority)) {
         response.send("Priority Updated");
-        const previousTodoQuery = `SELECT * FROM todo WHERE 
-        id = ${todoId} AND (status="TO DO" OR status="DONE" OR status="IN PROGRESS") AND (priority="HIGH" OR priority="LOW" OR priority="MEDIUM")
+        const previousTodoQuery = `SELECT * FROM todo WHERE id = ${todoId} AND (status="TO DO" OR status="DONE" OR status="IN PROGRESS") AND (priority="HIGH" OR priority="LOW" OR priority="MEDIUM")
         AND (category="HOME" or category="LEARNING" OR category="WORK");`;
         const previousTodo = await db.get(previousTodoQuery);
         if (previousTodo !== undefined) {
@@ -228,8 +227,7 @@ app.put("/todos/:todoId/", async (request, response) => {
     case request.body.category !== undefined:
       if (categories.includes(request.body.category)) {
         response.send("Category Updated");
-        const previousTodoQuery = `SELECT * FROM todo WHERE 
-        id = ${todoId} AND (status="TO DO" OR status="DONE" OR status="IN PROGRESS") AND (priority="HIGH" OR priority="LOW" OR priority="MEDIUM")
+        const previousTodoQuery = `SELECT * FROM todo WHERE id = ${todoId} AND (status="TO DO" OR status="DONE" OR status="IN PROGRESS") AND (priority="HIGH" OR priority="LOW" OR priority="MEDIUM")
         AND (category="HOME" or category="LEARNING" OR category="WORK");`;
         const previousTodo = await db.get(previousTodoQuery);
         if (previousTodo !== undefined) {
